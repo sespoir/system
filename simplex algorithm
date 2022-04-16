@@ -1,0 +1,95 @@
+ import numpy as np
+
+
+def gaussian_xiaoqu(m1, x, y, b):
+    m1 = np.array(m1)
+    rows = m1.shape[0]
+    clo = m1.shape[1]
+    m2 = np.zeros((rows, clo))
+
+    p = m1[x][y]
+    b[x] = b[x] / p
+    for i in range(clo):
+         print(p,m1[x][i])
+         m2[x][i] = m1[x][i] / p
+
+    for i in range(clo):
+            m1[x][i] = m2[x][i]
+    for i in range(rows):
+        if i != x:
+            b[i] = b[i] - b[x] * m1[i][y]
+            for j in range(clo):
+                m2[i][j] = m1[i][j] - m1[i][y] * m2[x][j]
+
+    m2 = m2.tolist()
+    return m2, b
+
+
+def check1(m1, max1, Cb):
+    m1 = np.array(m1)
+    rows = m1.shape[0]
+    clo = m1.shape[1]
+    check = []
+    p = 0
+    for j in range(clo):
+        for i in range(rows):
+            p += Cb[i] * m1[i][j]
+        check.append(max1[j] - p)
+    max_value = max(check)
+    print(max_value)
+    if max_value <= 0:
+        return -1
+    else:
+        return check.index(max_value)
+
+
+def check2(m1, b, max_value_index):
+    m1 = np.array(m1)
+    rows = m1.shape[0]
+    clo = m1.shape[1]
+    check = []
+    p = 0
+    for j in range(rows):
+        if m1[j][max_value_index] > 0:
+            p = b[j] / m1[j][max_value_index]
+        else:
+            p = 99999
+        check.append(p)
+    min_value = min(check)
+    return check.index(min_value)
+
+
+def out(m1, b):
+    m1 = np.array(m1)
+    rows = m1.shape[0]
+    clo = m1.shape[1]
+    for i in range(rows):
+        for j in range(clo):
+            if m1[i][j] == 1:
+                print(i, b[i])
+                break
+
+
+def simplex_algorithm(m1, b, max1):
+    m1 = np.array(m1)
+    rows = m1.shape[0]
+    clo = m1.shape[1]
+    Cb = max1[clo - rows:]
+    x = check1(m1, max1, Cb)
+    # y = check2(m1, b, x)
+    # print(y)
+    while (x > -1):
+       y = check2(m1, b, x)
+       Cb[y]=max1[x]
+       print(m1, max1, Cb)
+       m = gaussian_xiaoqu(m1, y, x, b)
+       m1 = m[0]
+       b = m[1]
+       x=check1(m1,max1,Cb)
+    out(m1, b)
+
+
+m1 = [[-1, 1, 1, 0, 0], [1, 2, 0, 1, 0], [3, 1, 0, 0, 1]]
+b = [2, 10, 5]
+max1 = [2, 3, 0, 0, 0]
+simplex_algorithm(m1,b,max1)
